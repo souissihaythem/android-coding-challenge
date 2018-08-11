@@ -9,4 +9,4 @@ class Logo(
         @JsonProperty("description") var description: String?,
         @JsonProperty("score") var score: Double?,
         @JsonProperty("topicality") var topicality: Double?
-): Serializable
+)

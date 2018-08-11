@@ -6,4 +6,4 @@ import java.io.Serializable
 
 class FeatureType(
         @JsonProperty("type") var type: String
-): Serializable
+)

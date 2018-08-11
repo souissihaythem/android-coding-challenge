@@ -5,9 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.v7.app.AppCompatActivity
 import android.util.Base64
-import android.util.Log
 import android.widget.Toast
 import com.kenkou.photorecognitionkenkou.BuildConfig
 import com.kenkou.photorecognitionkenkou.R
@@ -15,24 +13,16 @@ import com.kenkou.photorecognitionkenkou.models.FeatureType
 import com.kenkou.photorecognitionkenkou.models.Image
 import com.kenkou.photorecognitionkenkou.models.ImageContent
 import com.kenkou.photorecognitionkenkou.models.RequestImage
-import com.kenkou.photorecognitionkenkou.services.AppServiceApi
 import com.kenkou.photorecognitionkenkou.utils.ImageUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.IOException
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
-    val appService by lazy {
-        AppServiceApi.create()
-    }
-
-    private var disposables: CompositeDisposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         val image = Image(imageContent, features)
         val images = ArrayList<Image>()
         images.add(image)
-        val requestImage=  RequestImage(images)
+        val requestImage = RequestImage(images)
 
         addDisposable(appService.getImage(BuildConfig.API_KEY, requestImage)
                 .subscribeOn(Schedulers.io())
@@ -110,39 +100,23 @@ class MainActivity : AppCompatActivity() {
                     //if (loadingBar != null) loadingBar.start()
                 }
                 .subscribe(
-                        {
-                            result ->
-                            var suggestions =""
-                            if (result.responses?.size != 0){
+                        { result ->
+                            var suggestions = ""
+                            if (result.responses?.size != 0) {
                                 val imagesResults = result.responses!![0].labelAnnotations
                                 var counter = 1
-                                for (item in imagesResults){
+                                for (item in imagesResults) {
                                     suggestions = suggestions + counter + "- " + item.description + "\n"
                                     counter++
                                 }
                             }
                             resultTextView.text = suggestions
                         },
-                        {
-                            error ->
+                        { error ->
                             resultTextView.text = error.message
                         }
                 ))
     }
 
 
-    private fun addDisposable(disposable: Disposable) {
-        disposables?.add(disposable)
-    }
-
-    private fun clearDisposable() {
-        disposables?.dispose()
-        disposables?.clear()
-    }
-
-    override fun onStop() {
-        super.onStop()
-
-        clearDisposable()
-    }
 }

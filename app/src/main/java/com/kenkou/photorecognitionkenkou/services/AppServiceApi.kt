@@ -1,7 +1,6 @@
 package com.kenkou.photorecognitionkenkou.services
 
 import com.kenkou.photorecognitionkenkou.BuildConfig
-import com.kenkou.photorecognitionkenkou.models.ImageContent
 import com.kenkou.photorecognitionkenkou.models.RequestImage
 import com.kenkou.photorecognitionkenkou.models.ResponsesImage
 import io.reactivex.Observable
@@ -15,7 +14,7 @@ import retrofit2.http.*
 interface AppServiceApi {
 
     @Headers("Content-Type: application/json" ,
-            "Authorization: Bearer ya29.c.El_1BQ4GI3CrQ4mI1n4iknFtH7-kjRLu8BT0q69FwoW4SzctfNdd4-3BfRvmwPxsHOWgILdOKK0f3Atv5XzOkgK6w8P6iQ5csAXxkZQ8J70JtNEuR3kChKWSrSK1fAsIYw")
+            "Authorization: Bearer ya29.c.El_2BaE8Btw1S6d9jCdWjPVsClEB-IZgBKorMyth_zdB15J2BKBrXYAAF5nCUJ7OnOmWhYp_JMo4JeWXbCJecJSe2bO7kaP00cJTSgzU_RbitJwo17gT4m0K4WiVk7O6bA")
     @POST("v1/images:annotate")
     fun getImage(@Query("key") key: String,
                  @Body requests: RequestImage): Observable<ResponsesImage>

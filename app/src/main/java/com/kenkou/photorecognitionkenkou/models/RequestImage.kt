@@ -6,4 +6,4 @@ import java.io.Serializable
 
 class RequestImage(
         @JsonProperty("requests") var requests: List<Image>
-): Serializable
+)

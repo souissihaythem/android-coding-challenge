@@ -6,4 +6,4 @@ import java.io.Serializable
 
 class ImageContent(
         @JsonProperty("content") var content: String
-): Serializable
+)

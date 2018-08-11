@@ -5,4 +5,4 @@ import java.io.Serializable
 
 class ResponsesImage(
         @JsonProperty("responses") var responses: ArrayList<LogoAnnotations>?
-): Serializable
+)

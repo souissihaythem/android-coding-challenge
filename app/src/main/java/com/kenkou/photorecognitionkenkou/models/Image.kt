@@ -7,4 +7,4 @@ import java.io.Serializable
 class Image(
         @JsonProperty("image") var image: ImageContent,
         @JsonProperty("features") var features: ArrayList<FeatureType>
-): Serializable
+)
