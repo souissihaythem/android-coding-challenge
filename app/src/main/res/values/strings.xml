@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">PhotoRecognitionKenkou</string>
+    <string name="select_or_capture_image">Select or Capture Image</string>
+    <string name="select_action">Select Action</string>
+    <string name="select_photo_from_galery">Select photo from gallery</string>
+    <string name="capture_photo_from_camera">Capture photo from camera</string>
+    <string name="image_saved">Image Saved!</string>
+    <string name="failed">Failed!</string>
+</resources>
