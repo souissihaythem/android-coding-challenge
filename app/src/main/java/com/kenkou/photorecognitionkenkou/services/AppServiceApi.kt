@@ -13,10 +13,9 @@ import retrofit2.http.*
 
 interface AppServiceApi {
 
-    @Headers("Content-Type: application/json" ,
-            "Authorization: Bearer ya29.c.El_2BaE8Btw1S6d9jCdWjPVsClEB-IZgBKorMyth_zdB15J2BKBrXYAAF5nCUJ7OnOmWhYp_JMo4JeWXbCJecJSe2bO7kaP00cJTSgzU_RbitJwo17gT4m0K4WiVk7O6bA")
     @POST("v1/images:annotate")
-    fun getImage(@Query("key") key: String,
+    fun getImage(@HeaderMap headers: Map<String, String>,
+                 @Query("key") key: String,
                  @Body requests: RequestImage): Observable<ResponsesImage>
 
 
@@ -25,7 +24,9 @@ interface AppServiceApi {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(JacksonConverterFactory.create())
                 .baseUrl(BuildConfig.BASE_URL)
-                .client(OkHttpClient.Builder().addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)).build())
+                .client(OkHttpClient.Builder()
+                        .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                        .build())
                 .build()
                 .create(AppServiceApi::class.java)
     }

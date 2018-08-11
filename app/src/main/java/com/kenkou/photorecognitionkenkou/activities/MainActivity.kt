@@ -19,6 +19,9 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import javax.swing.UIManager.put
+
+
 
 
 class MainActivity : BaseActivity() {
@@ -93,7 +96,11 @@ class MainActivity : BaseActivity() {
         images.add(image)
         val requestImage = RequestImage(images)
 
-        addDisposable(appService.getImage(BuildConfig.API_KEY, requestImage)
+        var map = HashMap<String, String>()
+        map["Content-Type"] = "application/json"
+        map["Authorization"] = "Bearer ya29.c.El_2BaE8Btw1S6d9jCdWjPVsClEB-IZgBKorMyth_zdB15J2BKBrXYAAF5nCUJ7OnOmWhYp_JMo4JeWXbCJecJSe2bO7kaP00cJTSgzU_RbitJwo17gT4m0K4WiVk7O6bA"
+
+        addDisposable(appService.getImage(map, BuildConfig.API_KEY, requestImage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe {
