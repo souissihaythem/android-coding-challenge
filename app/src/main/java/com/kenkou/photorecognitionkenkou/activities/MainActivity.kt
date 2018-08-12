@@ -8,6 +8,7 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Base64
+import android.view.View
 import android.widget.Toast
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -137,9 +138,11 @@ class MainActivity : BaseActivity() {
                                     counter++
                                 }
                             }
+                            progressbar.visibility = View.GONE
                             resultTextView.text = suggestions
                         },
                         { error ->
+                            progressbar.visibility = View.GONE
                             resultTextView.text = error.message
                         }
                 ))
@@ -168,6 +171,11 @@ class MainActivity : BaseActivity() {
     }
 
     private inner class RetrieveTokenTask : AsyncTask<Account, Void, String>() {
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            progressbar.visibility = View.VISIBLE
+        }
 
         override fun doInBackground(vararg params: Account): String? {
             val accountName = params[0]
