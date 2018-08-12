@@ -14,7 +14,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "BASE_URL", '"https://vision.googleapis.com/"'
-        buildConfigField "String", "API_KEY", '"AIzaSyBS687jgCt5nEO_kaZKhFPDoR1B9U7Ej6Q"'
+        buildConfigField "String", "API_KEY", '"AIzaSyCj5QDzgiSIDOT3LVYzV88iofwNNS1lUwU"'
     }
     buildTypes {
         release {
@@ -37,5 +37,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-jackson:2.4.0"
     implementation "io.reactivex.rxjava2:rxandroid:2.0.2"
     implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
+
+    compile 'com.google.android.gms:play-services-auth:15.0.1'
 
 }

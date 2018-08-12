@@ -1,6 +1,5 @@
 package com.kenkou.photorecognitionkenkou.activities
 
-import android.annotation.SuppressLint
 import android.support.v7.app.AppCompatActivity
 import com.kenkou.photorecognitionkenkou.services.AppServiceApi
 import io.reactivex.disposables.CompositeDisposable

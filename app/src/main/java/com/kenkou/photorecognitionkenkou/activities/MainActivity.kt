@@ -1,18 +1,37 @@
 package com.kenkou.photorecognitionkenkou.activities
 
+import android.accounts.Account
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.AsyncTask
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Base64
 import android.widget.Toast
+import com.google.android.gms.auth.GoogleAuthUtil
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.Scope
+import com.google.android.gms.tasks.Task
 import com.kenkou.photorecognitionkenkou.BuildConfig
 import com.kenkou.photorecognitionkenkou.R
 import com.kenkou.photorecognitionkenkou.models.FeatureType
 import com.kenkou.photorecognitionkenkou.models.Image
 import com.kenkou.photorecognitionkenkou.models.ImageContent
 import com.kenkou.photorecognitionkenkou.models.RequestImage
+import com.kenkou.photorecognitionkenkou.utils.Constants.HEADER_KEY.AUTHORIZATION
+import com.kenkou.photorecognitionkenkou.utils.Constants.HEADER_KEY.CONTENT_TYPE
+import com.kenkou.photorecognitionkenkou.utils.Constants.HEADER_VALUE.APPLICATION_JSON
+import com.kenkou.photorecognitionkenkou.utils.Constants.HEADER_VALUE.BEARER
+import com.kenkou.photorecognitionkenkou.utils.Constants.REQUESTS.REQUEST_CAMERA
+import com.kenkou.photorecognitionkenkou.utils.Constants.REQUESTS.REQUEST_GALLERY
+import com.kenkou.photorecognitionkenkou.utils.Constants.REQUESTS.REQUEST_SIGNIN
+import com.kenkou.photorecognitionkenkou.utils.Constants.SCOPES.CLOUD_PLATEFORM
+import com.kenkou.photorecognitionkenkou.utils.Constants.SCOPES.CLOUD_VISION
+import com.kenkou.photorecognitionkenkou.utils.Constants.SCOPES.OAUTH2_PROFILE_EMAIL
 import com.kenkou.photorecognitionkenkou.utils.ImageUtils
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -21,10 +40,9 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 
-
-
 class MainActivity : BaseActivity() {
 
+    private var encodedImage: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +69,7 @@ class MainActivity : BaseActivity() {
 
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == ImageUtils.REQUEST_GALLERY && data != null) {
+        if (requestCode == REQUEST_GALLERY && data != null) {
             val contentURI = data.data
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, contentURI)
@@ -59,8 +77,8 @@ class MainActivity : BaseActivity() {
                 val baos = ByteArrayOutputStream()
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
                 val byteArrayImage = baos.toByteArray()
-                val encodedImage = Base64.encodeToString(byteArrayImage, Base64.DEFAULT)
-                getImageDescription(encodedImage)
+                encodedImage = Base64.encodeToString(byteArrayImage, Base64.DEFAULT)
+                signIn()
 
                 Toast.makeText(this@MainActivity, R.string.image_saved, Toast.LENGTH_SHORT).show()
                 imageView.setImageBitmap(bitmap)
@@ -70,22 +88,25 @@ class MainActivity : BaseActivity() {
                 Toast.makeText(this@MainActivity, R.string.failed, Toast.LENGTH_SHORT).show()
             }
 
-        } else if (requestCode == ImageUtils.REQUEST_CAMERA && data != null) {
+        } else if (requestCode == REQUEST_CAMERA && data != null) {
             val thumbnail = data.extras.get("data") as Bitmap
 
             val baos = ByteArrayOutputStream()
             thumbnail.compress(Bitmap.CompressFormat.JPEG, 100, baos)
             val byteArrayImage = baos.toByteArray()
-            val encodedImage = Base64.encodeToString(byteArrayImage, Base64.DEFAULT)
-            getImageDescription(encodedImage)
+            encodedImage = Base64.encodeToString(byteArrayImage, Base64.DEFAULT)
+            signIn()
 
             imageView.setImageBitmap(thumbnail)
             ImageUtils.saveImage(thumbnail, this)
             Toast.makeText(this@MainActivity, R.string.image_saved, Toast.LENGTH_SHORT).show()
+        } else if (requestCode == REQUEST_SIGNIN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            handleSignInResult(task)
         }
     }
 
-    private fun getImageDescription(encodedImage: String) {
+    private fun getImageDescription(token: String) {
         val imageContent = ImageContent(encodedImage)
         val featureType = FeatureType("LABEL_DETECTION")
         val features = ArrayList<FeatureType>()
@@ -95,9 +116,9 @@ class MainActivity : BaseActivity() {
         images.add(image)
         val requestImage = RequestImage(images)
 
-        var map = HashMap<String, String>()
-        map["Content-Type"] = "application/json"
-        map["Authorization"] = "Bearer ya29.c.El_2BaE8Btw1S6d9jCdWjPVsClEB-IZgBKorMyth_zdB15J2BKBrXYAAF5nCUJ7OnOmWhYp_JMo4JeWXbCJecJSe2bO7kaP00cJTSgzU_RbitJwo17gT4m0K4WiVk7O6bA"
+        val map = HashMap<String, String>()
+        map[CONTENT_TYPE] = APPLICATION_JSON
+        map[AUTHORIZATION] = "$BEARER $token"
 
         addDisposable(appService.getImage(map, BuildConfig.API_KEY, requestImage)
                 .subscribeOn(Schedulers.io())
@@ -124,5 +145,39 @@ class MainActivity : BaseActivity() {
                 ))
     }
 
+    private fun signIn() {
+        // TODO: get access_token only when access_token expire (use refresh_token)
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(Scope(CLOUD_PLATEFORM))
+                .requestScopes(Scope(CLOUD_VISION))
+                .build()
+        val mGoogleSignInClient = GoogleSignIn.getClient(this, gso)
+        val signInIntent = mGoogleSignInClient.signInIntent
+        startActivityForResult(signInIntent, REQUEST_SIGNIN)
+    }
+
+
+    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+            RetrieveTokenTask().execute(account.account)
+        } catch (e: ApiException) {
+        }
+
+    }
+
+    private inner class RetrieveTokenTask : AsyncTask<Account, Void, String>() {
+
+        override fun doInBackground(vararg params: Account): String? {
+            val accountName = params[0]
+            return GoogleAuthUtil.getToken(applicationContext, accountName, OAUTH2_PROFILE_EMAIL)
+        }
+
+        override fun onPostExecute(token: String) {
+            super.onPostExecute(token)
+            getImageDescription(token)
+        }
+    }
 
 }
